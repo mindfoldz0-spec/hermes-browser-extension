@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes Extension</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --bg-input: #121226;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6a6a80;
+            --accent-cyan: #00fff5;
+            --accent-cyan-dim: rgba(0, 255, 245, 0.15);
+            --accent-cyan-glow: rgba(0, 255, 245, 0.4);
+            --accent-green: #00ff88;
+            --accent-green-dim: rgba(0, 255, 136, 0.2);
+            --accent-red: #ff4757;
+            --accent-red-dim: rgba(255, 71, 87, 0.2);
+            --accent-yellow: #ffa502;
+            --border-color: rgba(0, 255, 245, 0.2);
+            --border-hover: rgba(0, 255, 245, 0.4);
+            --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-glow: 0 0 12px rgba(0, 255, 245, 0.15);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --font-mono: 'Consolas', 'Courier New', monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            width: 380px;
+            min-height: 480px;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-color);
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 14px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft), var(--shadow-glow);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-cyan-dim);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+        }
+
+        .app-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--accent-cyan);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .header-title span {
+            color: var(--accent-cyan);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-red);
+            box-shadow: 0 0 6px var(--accent-red);
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.connected {
+            background-color: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        .status-dot.connecting {
+            background-color: var(--accent-yellow);
+            box-shadow: 0 0 8px var(--accent-yellow);
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            outline: none;
+            transition: border-color var(--transition-fast);
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 8px var(--accent-cyan-dim);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan-dim);
+            color: var(--accent-cyan);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-cyan);
+            color: #000;
+            box-shadow: 0 0 10px var(--accent-cyan-glow);
+        }
+
+        .btn-danger {
+            background: var(--accent-red-dim);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 71, 87, 0.4);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .log-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .log-container {
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-entry {
+            color: var(--text-secondary);
+            word-break: break-all;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .log-entry span.time {
+            color: var(--text-muted);
+            margin-right: 6px;
+        }
+
+        .log-entry.success {
+            color: var(--accent-green);
+        }
+
+        .log-entry.error {
+            color: var(--accent-red);
+        }
+
+        .log-entry.info {
+            color: var(--accent-cyan);
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .clear-btn:hover {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="app-icon">
+                    <svg viewBox="0 0 24 24">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                </div>
+                <h1 class="header-title">Hermes <span>AI</span></h1>
+            </div>
+            <div class="status-badge">
+                <div id="status-dot" class="status-dot"></div>
+                <span id="status-text">Disconnected</span>
+            </div>
+        </div>
+
+        <!-- Connection Settings -->
+        <div class="card">
+            <div class="card-title">WebSocket Relay Server</div>
+            <div class="input-group">
+                <label for="url-input">Server Address</label>
+                <input type="text" id="url-input" class="input-field" placeholder="ws://localhost:8765" value="ws://localhost:8765" />
+            </div>
+            <div class="btn-group">
+                <button id="connect-btn" class="btn btn-primary">Connect</button>
+                <button id="stop-btn" class="btn btn-danger" disabled>Stop</button>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="log-section">
+            <div class="log-header">
+                <div class="card-title">Activity Logs</div>
+                <button id="clear-logs-btn" class="clear-btn">Clear</button>
+            </div>
+            <div id="log-div" class="log-container">
+                <div class="log-entry info"><span class="time">[Init]</span> Hermes Extension ready.</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
